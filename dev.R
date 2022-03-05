@@ -145,7 +145,15 @@ guess <- "brooo" %>% string_to_vector()
 guess <- "oboro" %>% string_to_vector()
 
 
-wordle_feedback <- function(guess, answer, l = length(answer), to_vector = TRUE) {
+wordle_feedback <- function(
+    guess, 
+    answer, 
+    l = length(answer), 
+    correct_position = 3, 
+    correct_letter = 1, 
+    incorrect = 0, 
+    to_vector = TRUE
+) {
     
     if (to_vector) {
         guess <- string_to_vector(guess)
@@ -162,7 +170,7 @@ wordle_feedback <- function(guess, answer, l = length(answer), to_vector = TRUE)
     
     df_g <- df %>% 
         filter(guess == answer) %>%
-        mutate(status = 1) %>%
+        mutate(status = correct_position) %>%
         select(position, status)
     
     df_i <- df %>% filter(guess != answer)
@@ -184,14 +192,14 @@ wordle_feedback <- function(guess, answer, l = length(answer), to_vector = TRUE)
     
     df_y <- df_match %>% 
         select(position = position_guess) %>%
-        mutate(status = 0)
+        mutate(status = correct_letter)
     
     df_status <- df %>%
         left_join(
-            df_g %>% bind_rows(df_y), 
+            bind_rows(df_g, df_y), 
             by = "position"
         ) %>%
-        mutate(status = replace_na(status, -1))
+        mutate(status = replace_na(status, incorrect))
     
     return(df_status)
     
@@ -205,13 +213,209 @@ wordle_feedback(guess = "broke", answer = "borno")
 wordle_feedback(guess = "banko", answer = "borno")
 
 
+# Trim possibilities based on guess
+hint <- wordle_feedback(guess = "sleil", answer = "swill")
+hint
 
-answer <- wordle$answers$answer[34]
+df_possibilities <- wordle$answers$answer %>%
+    map_df(function(word) {
+        word %>%
+            string_to_vector() %>%
+            set_names(1:5)
+    }) %>%
+    mutate(word = wordle$answers$answer)
+    # map_df(function(word) {
+    #     tibble(
+    #         word = word,
+    #         letter = string_to_vector(word)
+    #     )
+    # }) %>%
+    # group_by(word) %>%
+    # mutate(position = row_number()) %>%
+    # ungroup()
 
-df_answer_freq$answer %>%
-    head(20) %>%
-    map(~wordle_feedback(guess = .x, answer = answer))
 
+g <- hint %>% filter(status == 3)
+y <- hint %>% filter(status == 1)
+
+remainder <- df_possibilities
+for (i in 1:nrow(g)) {
+    remainder <- remainder %>% 
+        filter(!!sym(as.character(g$position[i])) == g$guess[i]) %>%
+        select(-!!sym(as.character(g$position[i])))
+}
+
+# TODO yellow with one letter will match options with multiple of the same letter (unless the position was correct)
+possibilities <- remainder %>%
+    pivot_longer(cols = !word, names_to = "position", values_to = "letter") %>%
+    filter(letter %in% y$guess) %>%
+    distinct(word)
+
+
+trim_possibilities <- function(hint, possibilities) {
+    
+    df_possibilities <- possibilities %>%
+        map_df(function(word) {
+            word %>%
+                string_to_vector() %>%
+                set_names(1:5)
+        }) %>%
+        mutate(word = possibilities)
+    
+    # Correct guess
+    if (all(hint$status == 3)) {
+        trimmed_words <- paste0(hint$guess, collapse = "")
+        return(trimmed_words)
+    }
+    
+    remainder <- df_possibilities
+    
+    # Trim to words with correct positions first
+    g <- hint %>% filter(status == 3)
+    
+    if (nrow(g) > 0) {
+        for (i in 1:nrow(g)) {
+            remainder <- remainder %>% 
+                filter(!!sym(as.character(g$position[i])) == g$guess[i]) %>%
+                select(-!!sym(as.character(g$position[i])))
+        }
+    }
+    
+    # Then trim to words containing correct letters
+    y <- hint %>% filter(status == 1)
+    
+    trimmed_words <- remainder %>%
+        pivot_longer(cols = !word, names_to = "position", values_to = "letter") %>%
+        mutate(position = as.integer(position))
+    
+    if (nrow(y) > 0) {
+        trimmed_words <- trimmed_words %>%
+            group_by(word) %>%
+            
+            # Filter to words containing the correct letters
+            filter(all(y$guess %in% letter)) %>%
+            
+            # Remove words where we know the letter is in the wrong spot
+            inner_join(
+                y %>% select(position, guess), 
+                by = "position"
+            ) %>%
+            filter(!any(letter == guess))
+    }
+    
+    trimmed_words <- trimmed_words %>% distinct(word)
+    
+    return(trimmed_words)
+}
+
+
+answer <- "swill"
+first_guess <- "stake"
+
+trimmed_possibilities <- trim_possibilities(hint = wordle_feedback(guess = first_guess, answer = answer), possibilities = wordle$answers$answer)
+
+
+trimmed_guess <- df_answer_freq %>%
+    inner_join(trimmed_possibilities, by = c("answer" = "word")) %>%
+    filter(score == max(score)) %>%
+    head(1) %>%
+    pull(answer)
+
+trim_possibilities(hint = wordle_feedback(guess = trimmed_guess, answer = answer), possibilities = trimmed_possibilities$word)
+
+# Max eliminations
+set.seed(34534)
+elimination <- trimmed_possibilities %>%
+    # sample_n(20) %>%
+    pull(word) %>%
+    map(function(guess) {
+        message(guess)
+        p <- trim_possibilities(hint = wordle_feedback(guess = guess, answer = answer), possibilities = trimmed_possibilities$word)
+        tibble(guess = guess, possibilities = nrow(p))
+    }) %>%
+    bind_rows()
+
+next_guess <- elimination %>%
+    arrange(possibilities) %>%
+    left_join(df_answer_freq, by = c("guess" = "answer")) %>%
+    filter(possibilities == min(possibilities, na.rm = TRUE)) %>%
+    filter(score == max(score, na.rm = TRUE)) %>%
+    head(1) %>%
+    pull(guess)
+
+
+
+trimmed_possibilities2 <- trim_possibilities(hint = wordle_feedback(guess = next_guess, answer = answer), possibilities = trimmed_possibilities$word)
+
+
+
+
+
+answer <- sample(wordle$answers$answer, 1)
+guess <- "stare"
+
+hint <- wordle_feedback(guess, answer)
+trimmed_possibilities <- trim_possibilities(hint, wordle$answers$answer)
+
+recommend_guess <- function(answer, possibilities) {
+    possibilities %>%
+        map(function(guess) {
+            message(guess)
+            p <- trim_possibilities(hint = wordle_feedback(guess, answer), possibilities = trimmed_possibilities$word)
+            tibble(guess = guess, possibilities = nrow(p))
+        }) %>%
+        bind_rows()
+}
+
+df_recommend <- recommend_guess(answer, trimmed_possibilities$word)
+
+df_recommend %>%
+    filter(possibilities == min(possibilities, na.rm = TRUE)) %>%
+    left_join(df_answer_freq, by = c("guess" = "answer"))%>%
+    filter(score == max(score, na.rm = TRUE)) %>%
+    head(1) %>%
+    pull(guess)
+
+
+
+# Distribution of possibilities after making a guess for each possible answer
+
+# This took 2 weeks to run...
+df_trim <- wordle$answers$answer %>% 
+    map(function(word) {
+        message(paste0(word, " ---------------------"))
+        recommend_guess(answer = word, possibilities = wordle$answers$answer) %>%
+            mutate(answer = word)
+    })
+    
+saveRDS(df_trim, "data/possibilities.rds")
+
+df_trim <- df_trim %>%
+    bind_rows() %>%
+    filter(!is.na(possibilities))
+
+df_trim %>%
+    group_by(guess) %>%
+    summarise(mean = mean(possibilities), median = median(possibilities), max = max(possibilities)) %>%
+    ungroup() %>%
+    arrange(mean)
+
+df_trim %>%
+    ggplot(aes(x = guess, y = possibilities)) +
+    geom_boxplot()
+
+df_trim %>%
+    filter(guess == "store") %>%
+    arrange(possibilities)
+
+
+
+
+answer = "brine"
+hint = wordle_feedback(guess = "winey", answer = answer)
+trimmed_possibilities = trim_possibilities(hint = hint, possibilities = wordle$answers$answer)
+df_trim %>%
+    inner_join(trimmed_possibilities, by = c("answer" = "word"))
 
 
 
