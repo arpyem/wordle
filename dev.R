@@ -300,12 +300,30 @@ trim_possibilities <- function(hint, possibilities) {
                 y %>% select(position, guess), 
                 by = "position"
             ) %>%
-            filter(!any(letter == guess))
+            filter(!any(letter == guess)) %>%
+            ungroup()
     }
     
-    trimmed_words <- trimmed_words %>% distinct(word)
+    trimmed_words2 <- remainder %>%
+        filter(word %in% trimmed_words$word) %>%
+        pivot_longer(cols = !word, names_to = "position", values_to = "letter") %>%
+        mutate(position = as.integer(position))
     
-    return(trimmed_words)
+    # Then trim to words that do not have the incorrect guessed letters in the incorrect location
+    x <- hint %>% filter(status == 0)
+    
+    if (nrow(x) > 0) {
+        trimmed_words3 <- trimmed_words2 %>%
+            left_join(x, by = "position") %>%
+            mutate(guess = replace_na(guess, "NA")) %>%
+            group_by(word) %>%
+            filter(!any(guess %in% letter)) %>%
+            ungroup()
+    }
+    
+    trimmed <- trimmed_words3 %>% distinct(word)
+    
+    return(trimmed)
 }
 
 
