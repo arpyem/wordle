@@ -1,0 +1,184 @@
+
+body {
+    font-size: 20px;
+    margin: 15px 60px 60px 60px;
+    background-color: #141414;
+    color: #f3f3f3;
+}
+
+.modal-content {
+    background-color: #1c1c1c;
+    color: #f3f3f3;
+}
+
+.modal-footer .btn {
+    width: 100%;
+}
+
+
+.rowc {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center
+}
+
+.mb {
+    margin-bottom: 15px;
+}
+
+
+
+
+
+
+.s1 {
+    background-color: #363636;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.s2 {
+    background-color: #52537c;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.s3 {
+    background-color: #307435;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.letter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.5em;
+    height: 1.5em;
+    cursor: pointer;
+    user-select: none;
+    margin: 5px;
+}
+
+.guess {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+}
+
+.possibility-table {
+    width: 30%;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.guess-progress {
+    font-size: 0.7em;
+    position: fixed;
+    left: 30px;
+    right: 30px;
+}
+
+.hidden {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+
+.s-info {
+    padding: 5px;
+    margin: 5px;
+    text-align: center;
+}
+
+
+
+/* DT */
+
+.table-striped > tbody > tr:nth-of-type(odd),
+.table-striped > tbody > tr:nth-of-type(even) {
+    background-color: #1e1e1e;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd):hover,
+.table-striped > tbody > tr:nth-of-type(even):hover {
+    background-color: #262626;
+}
+
+.dataTables_wrapper {
+    background-color: #1e1e1e;
+}
+
+.table.dataTable tbody tr.active td {
+    background-color: #152a3c;
+}
+
+.table > thead > tr > th {
+    border-top: 1px solid #262626;
+}
+
+.table > thead > tr > td {
+    border-bottom: none;
+}
+
+
+
+/* Inputs */
+
+.selectize-input,
+.selectize-input .focus,
+.selectize-input.full,
+.selectize-input.input-active,
+.form-control,
+.form-control .focus {
+    background-color: #262626 !important;
+    color: #f3f3f3 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    max-height: 20px !important;
+}
+
+.selectize-dropdown {
+    background-color: #262626 !important;
+    color: #f3f3f3 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 0 !important;
+}
+
+.selectize-dropdown .active {
+    background-color: #383838 !important;
+    color: #f3f3f3 !important;
+}
+
+.form-group {
+    width: 100%;
+}
+
+.btn,
+.btn-default {
+    background-color: #262626 !important;
+    color: #f3f3f3 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    font-size: 1em !important;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.btn:hover,
+.btn-default:hover,
+.btn:focus,
+.btn-default:focus,
+.btn:active,
+.btn-default:active {
+    background-color: #2a2a2a !important;
+    color: #f3f3f3 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    font-size: 1em !important;
+}
+
+
+
+

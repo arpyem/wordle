@@ -70,7 +70,7 @@ wordle_feedback <- function(
 
 
 # Use wordle feedback to trim the list of possible answers
-trim_possibilities <- function(hint, possibilities) {
+trim_possibilities <- function(hint, possibilities, status_values = c("incorrect" = 0, "partial" = 1, "correct" = 3)) {
     
     df_possibilities <- possibilities %>%
         map_df(function(word) {
@@ -81,15 +81,15 @@ trim_possibilities <- function(hint, possibilities) {
         mutate(word = possibilities)
     
     # Correct guess
-    if (all(hint$status == 3)) {
-        trimmed_words <- paste0(hint$guess, collapse = "")
+    if (all(hint$status == status_values[3])) {
+        trimmed_words <- tibble(word = paste0(hint$guess, collapse = ""))
         return(trimmed_words)
     }
     
     remainder <- df_possibilities
     
     # Trim to words with correct positions first
-    g <- hint %>% filter(status == 3)
+    g <- hint %>% filter(status == status_values[3])
     
     if (nrow(g) > 0) {
         for (i in 1:nrow(g)) {
@@ -100,7 +100,7 @@ trim_possibilities <- function(hint, possibilities) {
     }
     
     # Then trim to words containing correct letters
-    y <- hint %>% filter(status == 1)
+    y <- hint %>% filter(status == status_values[2])
     
     trimmed_words <- remainder %>%
         pivot_longer(cols = !word, names_to = "position", values_to = "letter") %>%
@@ -122,16 +122,16 @@ trim_possibilities <- function(hint, possibilities) {
             ungroup()
     }
     
-    trimmed_words2 <- remainder %>%
+    trimmed_words <- remainder %>%
         filter(word %in% trimmed_words$word) %>%
         pivot_longer(cols = !word, names_to = "position", values_to = "letter") %>%
         mutate(position = as.integer(position))
     
     # Then trim to words that do not have the incorrect guessed letters in the incorrect location
-    x <- hint %>% filter(status == 0)
+    x <- hint %>% filter(status == status_values[1])
     
     if (nrow(x) > 0) {
-        trimmed_words3 <- trimmed_words2 %>%
+        trimmed_words <- trimmed_words %>%
             left_join(x, by = "position") %>%
             mutate(guess = replace_na(guess, "NA")) %>%
             group_by(word) %>%
@@ -139,7 +139,7 @@ trim_possibilities <- function(hint, possibilities) {
             ungroup()
     }
     
-    trimmed <- trimmed_words3 %>% distinct(word)
+    trimmed <- trimmed_words %>% distinct(word)
     
     return(trimmed)
 }
