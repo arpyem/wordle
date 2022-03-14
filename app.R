@@ -12,7 +12,8 @@ wordle <- readRDS(file = file.path("data", "wordle.rds"))
 source("functions.R")
 
 
-# TODO check if there is only one possibility and show as answer
+# TODO let guesses react to more than just the previous guesses data using the px()
+# TODO messaging for when possibility table is empty - invalid hint (or missing words)
 
 
 # UI ========================================================================================================================================
@@ -241,7 +242,8 @@ server <- function(input, output, session) {
         solution2 = NA,
         solution3 = NA,
         solution4 = NA,
-        solution5 = NA
+        solution5 = NA,
+        tests = list()
     )
     
     # observe({
@@ -289,7 +291,7 @@ server <- function(input, output, session) {
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g1),
-            status = factor(input$g1_status)
+            status = input$g1_status
         )
     })
     
@@ -390,7 +392,7 @@ server <- function(input, output, session) {
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g2),
-            status = factor(input$g2_status)
+            status = input$g2_status
         )
     })
     
@@ -493,7 +495,7 @@ server <- function(input, output, session) {
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g3),
-            status = factor(input$g3_status)
+            status = input$g3_status
         )
     })
     
@@ -593,7 +595,7 @@ server <- function(input, output, session) {
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g4),
-            status = factor(input$g4_status)
+            status = input$g4_status
         )
     })
     
@@ -740,6 +742,7 @@ server <- function(input, output, session) {
                 ),
                 
                 div(
+                    tags$h3("Example:", style = "text-align: center"),
                     wordle_example(word = "spear", style = "font-size: 2em; margin-bottom: 15px"),
                     div(
                         div("E", class = "letter s3"),
@@ -769,6 +772,45 @@ server <- function(input, output, session) {
         ))
     })
     
+    
+    observe({
+        
+        rv$tests$g1 <- list(
+            guess = input$g1,
+            status = input$g1_status,
+            hint = hint1(),
+            possibilities = p1()
+        )
+        
+        rv$tests$g2 <- list(
+            guess = input$g2,
+            status = input$g2_status,
+            hint = hint2(),
+            possibilities = p2()
+        )
+        
+        rv$tests$g3 <- list(
+            guess = input$g3,
+            status = input$g3_status,
+            hint = hint3(),
+            possibilities = p3()
+        )
+        
+        rv$tests$g4 <- list(
+            guess = input$g4,
+            status = input$g4_status,
+            hint = hint4(),
+            possibilities = p4()
+        )
+        
+    })
+    
+    # Cache Tests ----
+    onSessionEnded(function() {
+        isolate({
+            saveRDS(object = rv$tests, file = file.path("tests", "values.rds"))
+        })
+    })
     
 }
 

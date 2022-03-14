@@ -132,6 +132,7 @@ trim_possibilities <- function(hint, possibilities, status_values = c("incorrect
     
     if (nrow(x) > 0) {
         trimmed_words <- trimmed_words %>%
+            anti_join(y, by = c("letter" = "guess")) %>%
             left_join(x, by = "position") %>%
             mutate(guess = replace_na(guess, "NA")) %>%
             group_by(word) %>%

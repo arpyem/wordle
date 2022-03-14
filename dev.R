@@ -437,3 +437,56 @@ df_trim %>%
 
 
 
+
+
+
+
+# Example of single guess giving a solution
+guess = string_to_vector("begin")
+hint = tibble(
+    position = 1:5,
+    guess = guess,
+    status = c(1, 1, 1, 0, 0)
+)
+trimmed_possibilities = trim_possibilities(hint = hint, possibilities = wordle$answers$answer)
+
+
+df_possibilities <- wordle$answers$answer %>%
+    map_df(function(word) {
+        word %>%
+            string_to_vector() %>%
+            set_names(1:5)
+    }) %>%
+    mutate(word = wordle$answers$answer)
+
+y <- hint %>% filter(status == 1)
+
+trimmed_words <- df_possibilities %>%
+    pivot_longer(cols = !word, names_to = "position", values_to = "letter") %>%
+    mutate(position = as.integer(position))
+
+trimmed_words <- trimmed_words %>%
+    group_by(word) %>%
+    
+    # Filter to words containing the correct letters
+    filter(all(y$guess %in% letter)) %>%
+    
+    # Remove words where we know the letter is in the wrong spot
+    inner_join(
+        y %>% select(position, guess), 
+        by = "position"
+    ) %>%
+    filter(!any(letter == guess)) %>%
+    ungroup()
+
+
+
+# Bugfix
+
+guess = "issue"
+hint = tibble(
+    position = 1:5,
+    guess = string_to_vector(guess),
+    status = c(0,1,0,0,1)
+)
+trim_possibilities(hint, wordle$answers$answer)

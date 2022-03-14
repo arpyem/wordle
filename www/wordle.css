@@ -123,7 +123,8 @@ li {
     background-color: #152a3c;
 }
 
-.table > thead > tr > th {
+.table > thead > tr > th,
+.table > tbody > tr > td {
     border-top: 1px solid #262626;
 }
 
@@ -136,9 +137,11 @@ li {
 /* Inputs */
 
 .selectize-input,
+.selectize-input input,
 .selectize-input .focus,
 .selectize-input.full,
 .selectize-input.input-active,
+.selectize-control.single .selectize-input.input-active,
 .form-control,
 .form-control .focus {
     background-color: #262626 !important;
