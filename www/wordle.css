@@ -91,6 +91,17 @@ body {
 }
 
 
+.solution {
+    font-size: 1.2em;
+    padding: 5px;
+    text-align: center;
+}
+
+li {
+    margin: 10px 0 10px 0;
+}
+
+
 
 /* DT */
 

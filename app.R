@@ -75,7 +75,7 @@ ui <- fluidPage(
                 ),
                 
                 # Guess 2 ----
-                div(
+                hidden(div(
                     id = "div-g2",
                     
                     div(
@@ -104,14 +104,14 @@ ui <- fluidPage(
                             DTOutput(outputId = "t2"),
                             class = "possibility-table"
                         ),
-                        class = "rowc mb hidden"
+                        class = "rowc mb"
                     ),
                     
-                    class = "hidden mb"
-                ),
+                    class = "mb"
+                )),
                 
                 # Guess 3 ----
-                div(
+                hidden(div(
                     id = "div-g3",
                     
                     div(
@@ -140,14 +140,14 @@ ui <- fluidPage(
                             DTOutput(outputId = "t3"),
                             class = "possibility-table"
                         ),
-                        class = "rowc mb hidden"
+                        class = "rowc mb"
                     ),
                     
-                    class = "hidden mb"
-                ),
+                    class = "mb"
+                )),
                 
                 # Guess 4 ----
-                div(
+                hidden(div(
                     id = "div-g4",
                     
                     div(
@@ -175,12 +175,18 @@ ui <- fluidPage(
                             DTOutput(outputId = "t4"),
                             class = "possibility-table"
                         ),
-                        class = "rowc mb hidden"
+                        class = "rowc mb"
                     ),
                     
-                    class = "hidden mb"
-                )
+                    class = "mb"
+                ))
                 
+            ), # End guesses
+            
+            # Solution ----
+            div(
+                id = "div-solution",
+                uiOutput(outputId = "ui_solution")
             ),
             
             # Progress ----
@@ -219,12 +225,24 @@ server <- function(input, output, session) {
         #     guess_4 = input$g4,
         #     status_4 = input$g4_status
         # )
-        all_guesses()
+        list(
+            rv$solution1, 
+            rv$solution2, 
+            rv$solution3, 
+            rv$solution4,
+            solution()
+        )
     })
     
     
     # Reactive Values ----
-    rv <- reactiveValues()
+    rv <- reactiveValues(
+        solution1 = NA,
+        solution2 = NA,
+        solution3 = NA,
+        solution4 = NA,
+        solution5 = NA
+    )
     
     # observe({
     #     runjs()
@@ -278,33 +296,42 @@ server <- function(input, output, session) {
     
     # Trim possible guesses based on hint
     p1 <- eventReactive(input$submit_g1, {
-        message("finding possible answers")
-        trim_possibilities(
+        p <- trim_possibilities(
             hint = hint1(), 
             possibilities = wordle$answers$answer, 
             status_values = c("s1", "s2", "s3")
         )
+        
+        if (length(p[["word"]]) == 1) {
+            rv$solution1 <- p[["word"]]
+        } else {
+            rv$solution1 <- NA
+        }
+        
+        return(p)
     })
     
     
     # Render table of possible second guesses
     output$t1 <- renderDT({
-        p1() %>%
-            rename(Possibilities = word) %>%
-            datatable(
-                options = list(
-                    pageLength = nrow(.),
-                    dom = "t",
-                    scrollX = TRUE,
-                    scrollY = min(500, 45 * nrow(.)),
-                    columnDefs = list(
-                        list(className = "dt-center", targets = "_all")
-                    )
-                ), rownames = FALSE, 
-                filter = "top", 
-                style = "bootstrap", 
-                selection = "single"
-            )
+        if (is.na(rv$solution1)) {
+            p1() %>%
+                rename(Possibilities = word) %>%
+                datatable(
+                    options = list(
+                        pageLength = nrow(.),
+                        dom = "t",
+                        scrollX = TRUE,
+                        scrollY = min(500, 45 * nrow(.)),
+                        columnDefs = list(
+                            list(className = "dt-center", targets = "_all")
+                        )
+                    ), rownames = FALSE, 
+                    filter = "top", 
+                    style = "bootstrap", 
+                    selection = "single"
+                )
+        }
     })
     
     
@@ -313,9 +340,12 @@ server <- function(input, output, session) {
     
     # Trim options for possible second guesses
     observeEvent(p1(), {
-        removeCssClass(id = "div-g2", class = "hidden")
-        removeCssClass(id = "div-t2", class = "hidden")
-        updateSelectInput(session = session, inputId = "g2", choices = p1()[["word"]])
+        if (is.na(rv$solution1)) {
+            updateSelectInput(session = session, inputId = "g2", choices = p1()[["word"]])
+            shinyjs::show(id = "div-g2", anim = TRUE)
+        } else {
+            shinyjs::hide(id = "div-g2", anim = TRUE)
+        }
     })
     
     # Update selected guess if a row in the table is clicked
@@ -327,7 +357,6 @@ server <- function(input, output, session) {
     
     # Render letter boxes for second guess
     output$ui_g2 <- renderUI({
-        
         letter_boxes <- input$g2 %>%
             toupper() %>%
             string_to_vector() %>%
@@ -368,33 +397,42 @@ server <- function(input, output, session) {
     
     # Trim possibilities for next answer
     p2 <- eventReactive(input$submit_g2, {
-        message("finding possible second answers")
-        trim_possibilities(
+        p <- trim_possibilities(
             hint = hint2(), 
             possibilities = p1()[["word"]], 
             status_values = c("s1", "s2", "s3")
         )
+        
+        if (length(p[["word"]]) == 1) {
+            rv$solution2 <- p[["word"]]
+        } else {
+            rv$solution2 <- NA
+        }
+        
+        return(p)
     })
     
     
     # Render possibility table
     output$t2 <- renderDT({
-        p2() %>%
-            rename(Possibilities = word) %>%
-            datatable(
-                options = list(
-                    pageLength = nrow(.),
-                    dom = "t",
-                    scrollX = TRUE,
-                    scrollY = min(500, 45 * nrow(.)),
-                    columnDefs = list(
-                        list(className = "dt-center", targets = "_all")
-                    )
-                ), rownames = FALSE, 
-                filter = "top", 
-                style = "bootstrap", 
-                selection = "single"
-            )
+        if (is.na(rv$solution2)) {
+            p2() %>%
+                rename(Possibilities = word) %>%
+                datatable(
+                    options = list(
+                        pageLength = nrow(.),
+                        dom = "t",
+                        scrollX = TRUE,
+                        scrollY = min(500, 45 * nrow(.)),
+                        columnDefs = list(
+                            list(className = "dt-center", targets = "_all")
+                        )
+                    ), rownames = FALSE, 
+                    filter = "top", 
+                    style = "bootstrap", 
+                    selection = "single"
+                )
+        }
     })
     
     
@@ -402,9 +440,12 @@ server <- function(input, output, session) {
     
     # Trim options for possible third guesses
     observeEvent(p2(), {
-        removeCssClass(id = "div-g3", class = "hidden")
-        removeCssClass(id = "div-t3", class = "hidden")
-        updateSelectInput(session = session, inputId = "g3", choices = p2()[["word"]])
+        if (is.na(rv$solution2)) {
+            updateSelectInput(session = session, inputId = "g3", choices = p2()[["word"]])
+            shinyjs::show(id = "div-g3", anim = TRUE)
+        } else {
+            shinyjs::hide(id = "div-g3", anim = TRUE)
+        }
     })
     
     # Update selected guess if a row in the table is clicked
@@ -458,30 +499,42 @@ server <- function(input, output, session) {
     
     p3 <- eventReactive(input$submit_g3, {
         message("finding possible third answers")
-        trim_possibilities(
+        p <- trim_possibilities(
             hint = hint3(), 
             possibilities = p2()[["word"]], 
             status_values = c("s1", "s2", "s3")
         )
+        
+        if (length(p[["word"]]) == 1) {
+            rv$solution3 <- p[["word"]]
+        } else {
+            rv$solution3 <- NA
+        }
+        
+        return(p)
     })
     
+    
+    
     output$t3 <- renderDT({
-        p3() %>%
-            rename(Possibilities = word) %>%
-            datatable(
-                options = list(
-                    pageLength = nrow(.),
-                    dom = "t",
-                    scrollX = TRUE,
-                    scrollY = min(500, 45 * nrow(.)),
-                    columnDefs = list(
-                        list(className = "dt-center", targets = "_all")
-                    )
-                ), rownames = FALSE, 
-                filter = "top", 
-                style = "bootstrap", 
-                selection = "single"
-            )
+        if (is.na(rv$solution3)) {
+            p3() %>%
+                rename(Possibilities = word) %>%
+                datatable(
+                    options = list(
+                        pageLength = nrow(.),
+                        dom = "t",
+                        scrollX = TRUE,
+                        scrollY = min(500, 45 * nrow(.)),
+                        columnDefs = list(
+                            list(className = "dt-center", targets = "_all")
+                        )
+                    ), rownames = FALSE, 
+                    filter = "top", 
+                    style = "bootstrap", 
+                    selection = "single"
+                )
+        }
     })
     
     
@@ -489,9 +542,12 @@ server <- function(input, output, session) {
     
     # Trim options for possible fourth guesses
     observeEvent(p3(), {
-        removeCssClass(id = "div-g4", class = "hidden")
-        removeCssClass(id = "div-t4", class = "hidden")
-        updateSelectInput(session = session, inputId = "g4", choices = p3()[["word"]])
+        if (is.na(rv$solution3)) {
+            updateSelectInput(session = session, inputId = "g4", choices = p3()[["word"]])
+            shinyjs::show(id = "div-g4", anim = TRUE)
+        } else {
+            shinyjs::hide(id = "div-g4", anim = TRUE)
+        }
     })
     
     # Update selected guess if a row in the table is clicked
@@ -543,30 +599,74 @@ server <- function(input, output, session) {
     
     p4 <- eventReactive(input$submit_g4, {
         message("finding possible fourth answers")
-        trim_possibilities(
+        p <- trim_possibilities(
             hint = hint4(), 
             possibilities = p3()[["word"]], 
             status_values = c("s1", "s2", "s3")
         )
+        
+        if (length(p[["word"]]) == 1) {
+            rv$solution4 <- p[["word"]]
+        } else {
+            rv$solution4 <- NA
+        }
+        
+        return(p)
     })
     
+    
+    
     output$t4 <- renderDT({
-        p4() %>%
-            rename(Possibilities = word) %>%
-            datatable(
-                options = list(
-                    pageLength = nrow(.),
-                    dom = "t",
-                    scrollX = TRUE,
-                    scrollY = min(500, 45 * nrow(.)),
-                    columnDefs = list(
-                        list(className = "dt-center", targets = "_all")
-                    )
-                ), rownames = FALSE, 
-                filter = "top", 
-                style = "bootstrap", 
-                selection = "single"
+        if (is.na(rv$solution4)) {
+            p4() %>%
+                rename(Possibilities = word) %>%
+                datatable(
+                    options = list(
+                        pageLength = nrow(.),
+                        dom = "t",
+                        scrollX = TRUE,
+                        scrollY = min(500, 45 * nrow(.)),
+                        columnDefs = list(
+                            list(className = "dt-center", targets = "_all")
+                        )
+                    ), rownames = FALSE, 
+                    filter = "top", 
+                    style = "bootstrap", 
+                    selection = "single"
+                )
+        }
+    })
+    
+    
+    # Solution ----
+    # test case: WHINY, ABASE (s3,s1,s1,s2,s1)
+    solution <- reactive({
+        solutions <- c(
+            rv$solution1,
+            rv$solution2,
+            rv$solution3,
+            rv$solution4,
+            rv$solution5
+        ) %>%
+            na.omit()
+        if (length(solutions) > 0) {
+            head(solutions, 1)
+        }
+    })
+    
+    output$ui_solution <- renderUI({
+        if (!is.null(solution())) {
+            letter_boxes <- solution() %>% 
+                toupper() %>%
+                string_to_vector() %>% 
+                map(function(letter) {
+                    div(letter, class = "letter s3")
+                })
+            div(
+                div("SOLUTION", class = "solution"),
+                div(letter_boxes, class = "guess"),
             )
+        }
     })
     
     
@@ -595,19 +695,19 @@ server <- function(input, output, session) {
     })
     
     
-    output$ui_progress <- renderUI({
-        all_guesses() %>%
-            map(function(guess) {
-                letter_boxes <- map2(guess$letters, guess$status, function(letter, status) {
-                    div(
-                        toupper(letter),
-                        class = paste("letter", status)
-                    )
-                })
-                
-                div(letter_boxes, class = "guess")
-            })
-    })
+    # output$ui_progress <- renderUI({
+    #     all_guesses() %>%
+    #         map(function(guess) {
+    #             letter_boxes <- map2(guess$letters, guess$status, function(letter, status) {
+    #                 div(
+    #                     toupper(letter),
+    #                     class = paste("letter", status)
+    #                 )
+    #             })
+    #             
+    #             div(letter_boxes, class = "guess")
+    #         })
+    # })
     
     
     # Help ----
@@ -617,6 +717,17 @@ server <- function(input, output, session) {
             title = "Wordle Helper",
             div(
                 div(
+                    tags$p(
+                        "This app is a tool to help you solve the game ", 
+                        tags$a("Wordle", href = "https://www.nytimes.com/games/wordle/index.html", target = "_blank"),
+                        ". For more information about Wordle, see the ",
+                        tags$a("Wordle FAQ", href = "https://help.nytimes.com/hc/en-us/articles/360029050872-Word-Games-and-Logic-Puzzles#h_01FVGCB2Z00ZQMDMCYWBPWJNXB", target = "_blank"),
+                        "."
+                    ),
+                    class = "rowc mb"
+                ),
+                div(
+                    tags$h2("How to use the helper:"),
                     tags$ol(
                         tags$li("Select the word you guessed in Wordle."),
                         tags$li("Click on the letters to match the hint Wordle gave you."),
@@ -627,12 +738,31 @@ server <- function(input, output, session) {
                     ),
                     class = "rowc mb"
                 ),
+                
                 div(
-                    div("Correct letter and position", class = "s-info s3"),
-                    div("Correct letter, incorrect position", class = "s-info s2"),
-                    div("Incorrect letter and position", class = "s-info s1"),
-                    class = "rowc mb"
-                ),
+                    wordle_example(word = "spear", style = "font-size: 2em; margin-bottom: 15px"),
+                    div(
+                        div("E", class = "letter s3"),
+                        div(" is in the answer and in the correct position"),
+                        class = "rowc mb"
+                    ),
+                    div(
+                        div("P", class = "letter s2"),
+                        div(" is in the answer but is not in the correct position"),
+                        class = "rowc mb"
+                    ),
+                    div(
+                        div(
+                            div("S", class = "letter s1"),
+                            div("A", class = "letter s1"),
+                            div("R", class = "letter s1"),
+                            class = "rowc"
+                        ),
+                        div(" are not anywhere in the answer"),
+                        class = "rowc mb"
+                    )
+                )
+                
             ), 
             easyClose = TRUE,
             size = "m"

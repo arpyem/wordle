@@ -143,3 +143,31 @@ trim_possibilities <- function(hint, possibilities, status_values = c("incorrect
     
     return(trimmed)
 }
+
+
+
+wordle_example <- function(word, style = "") {
+   letter_boxes <- word %>% 
+        toupper() %>%
+        string_to_vector() %>% 
+        imap(function(letter, i) {
+            status <- case_when(
+                i == 2 ~ "s2",
+                i == 3 ~ "s3",
+                TRUE ~ "s1"
+            )
+            div(letter, class = paste("letter", status))
+        })
+   div(letter_boxes, class = "guess", style = style)
+}
+
+wordle_solution <- function(solution, style = "") {
+    letter_boxes <- solution %>% 
+        toupper() %>%
+        string_to_vector() %>% 
+        imap(function(letter, i) {
+            div(letter, class = "letter s3")
+        })
+    div(letter_boxes, class = "guess", style = style)
+}
+
