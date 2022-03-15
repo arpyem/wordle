@@ -4,6 +4,10 @@ library(shinyjs)
 library(DT)
 
 
+# Set seed based on date - only affects the starting guess
+set.seed(as.numeric(Sys.Date()))
+
+
 # Data
 wordle <- readRDS(file = file.path("data", "wordle.rds"))
 
@@ -212,44 +216,46 @@ server <- function(input, output, session) {
     # Testing ----
     output$test <- renderPrint({
         req(NULL)
-        # list(
-        #     guess_1 = input$g1,
-        #     status_1 = input$g1_status,
-        #     hint1 = hint1(),
-        #     p1 = p1(),
-        #     guess_2 = input$g2,
-        #     status_2 = input$g2_status,
-        #     hint2 = hint2(),
-        #     p2 = p2(),
-        #     guess_3 = input$g3,
-        #     status_3 = input$g3_status,
-        #     guess_4 = input$g4,
-        #     status_4 = input$g4_status
-        # )
         list(
-            rv$solution1, 
-            rv$solution2, 
-            rv$solution3, 
-            rv$solution4,
-            solution()
+            guess_1 = input$g1,
+            status_1 = input$g1_status,
+            hint1 = hint1(),
+            guess_2 = input$g2,
+            status_2 = input$g2_status,
+            hint2 = hint2(),
+            guess_3 = input$g3,
+            status_3 = input$g3_status,
+            hint3 = hint3(),
+            guess_4 = input$g4,
+            status_4 = input$g4_status,
+            hint4 = hint4()
         )
     })
     
     
     # Reactive Values ----
     rv <- reactiveValues(
+        submit = NULL,
         solution1 = NA,
         solution2 = NA,
         solution3 = NA,
         solution4 = NA,
         solution5 = NA,
-        tests = list()
+        tests = list(),
+        usage = readRDS(file = file.path("tests", "usage.rds")),
+        start_time = Sys.time()
     )
     
     # observe({
     #     runjs()
     # }) %>%
     #     bindEvent(input$g1)
+    
+    
+    # Submit Event ----
+    observeEvent(c(input$submit_g1, input$submit_g2, input$submit_g3, input$submit_g4), {
+        rv$submit <- Sys.time()
+    })
     
     
     
@@ -287,7 +293,7 @@ server <- function(input, output, session) {
     
     # Get hint
     hint1 <- reactive({
-        req(input$g1_status)
+        req(length(input$g1_status) == 5)
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g1),
@@ -298,6 +304,7 @@ server <- function(input, output, session) {
     
     # Trim possible guesses based on hint
     p1 <- eventReactive(input$submit_g1, {
+        
         p <- trim_possibilities(
             hint = hint1(), 
             possibilities = wordle$answers$answer, 
@@ -388,7 +395,7 @@ server <- function(input, output, session) {
     
     # Get hint from second guess
     hint2 <- reactive({
-        req(input$g2_status)
+        req(length(input$g2_status) == 5)
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g2),
@@ -399,6 +406,7 @@ server <- function(input, output, session) {
     
     # Trim possibilities for next answer
     p2 <- eventReactive(input$submit_g2, {
+        
         p <- trim_possibilities(
             hint = hint2(), 
             possibilities = p1()[["word"]], 
@@ -491,7 +499,7 @@ server <- function(input, output, session) {
     
     
     hint3 <- reactive({
-        req(input$g3_status)
+        req(length(input$g3_status) == 5)
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g3),
@@ -500,7 +508,7 @@ server <- function(input, output, session) {
     })
     
     p3 <- eventReactive(input$submit_g3, {
-        message("finding possible third answers")
+        
         p <- trim_possibilities(
             hint = hint3(), 
             possibilities = p2()[["word"]], 
@@ -591,7 +599,7 @@ server <- function(input, output, session) {
     
     
     hint4 <- reactive({
-        req(input$g4_status)
+        req(length(input$g4_status) == 5)
         tibble(
             position = 1:5,
             guess = string_to_vector(input$g4),
@@ -600,7 +608,7 @@ server <- function(input, output, session) {
     })
     
     p4 <- eventReactive(input$submit_g4, {
-        message("finding possible fourth answers")
+        
         p <- trim_possibilities(
             hint = hint4(), 
             possibilities = p3()[["word"]], 
@@ -675,7 +683,7 @@ server <- function(input, output, session) {
     # PROGRESS ----
     
     # All guesses
-    all_guesses <- eventReactive(c(input$submit_g1, input$submit_g2, input$submit_g3, input$submit_g4), {
+    all_guesses <- eventReactive(rv$submit, {
         list(
             g1 = list(
                 letters = string_to_vector(input$g1),
@@ -809,6 +817,7 @@ server <- function(input, output, session) {
     onSessionEnded(function() {
         isolate({
             saveRDS(object = rv$tests, file = file.path("tests", "values.rds"))
+            saveRDS(object = c(rv$start_time, rv$usage), file = file.path("tests", "usage.rds"))
         })
     })
     
