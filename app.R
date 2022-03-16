@@ -16,7 +16,7 @@ wordle <- readRDS(file = file.path("data", "wordle.rds"))
 source("functions.R")
 
 
-# TODO let guesses react to more than just the previous guesses data using the px()
+# TODO add 6th guess (for closure)
 # TODO messaging for when possibility table is empty - invalid hint (or missing words)
 
 
@@ -40,199 +40,121 @@ ui <- fluidPage(
                 class = "rowc mb"
             ),
             
-            # Guesses
+            
+            # UI: GUESSES ----
             div(
                 
                 # Guess 1 ----
                 div(
                     id = "div-g1",
-                    
                     div(
-                        div(
-                            selectInput(
-                                inputId = "g1", 
-                                label = "Guess 1",
-                                choices = sort(c(wordle$words$allowed, wordle$answers$answer)), 
-                                selected = sample(wordle$answers$answer, 1),
-                                width = "100%"
-                            ),
-                            style = "width: 10%; min-width: 150px; max-width: 300px"
+                        selectInput(
+                            inputId = "g1", 
+                            label = "Guess 1",
+                            choices = sort(c(wordle$words$allowed, wordle$answers$answer)), 
+                            selected = sample(wordle$answers$answer, 1),
+                            width = "150px"
                         ),
-                        class = "rowc"
-                    ),
-                    
-                    uiOutput(outputId = "ui_g1"),
-                    
-                    div(
-                        actionButton(inputId = "submit_g1", label = "Submit hint"),
-                        class = "rowc mb"
-                    ),
-                    
-                    div(
-                        div(
-                            DTOutput(outputId = "t1"),
-                            class = "possibility-table"
-                        ),
-                        class = "rowc mb"
-                    ),
-                    
-                    class = "mb"
+                        uiOutput(outputId = "ui_g1"),
+                        div(actionButton(inputId = "submit_g1", label = "Guess"), style = "margin: 5px;"),
+                        class = "input-guess"
+                    )
                 ),
                 
                 # Guess 2 ----
                 hidden(div(
                     id = "div-g2",
-                    
                     div(
-                        div(
-                            selectInput(
-                                inputId = "g2", 
-                                label = "Guess 2",
-                                choices = NULL, 
-                                width = "100%"
-                            ),
-                            style = "width: 10%; min-width: 150px; max-width: 300px"
+                        selectInput(
+                            inputId = "g2", 
+                            label = "Guess 2",
+                            choices = NULL, 
+                            width = "150px"
                         ),
-                        class = "rowc"
-                    ),
-                    
-                    uiOutput(outputId = "ui_g2"),
-                    
-                    div(
-                        actionButton(inputId = "submit_g2", label = "Submit hint"),
-                        class = "rowc mb"
-                    ),
-                    
-                    div(
-                        id = "div-t2",
-                        div(
-                            DTOutput(outputId = "t2"),
-                            class = "possibility-table"
-                        ),
-                        class = "rowc mb"
-                    ),
-                    
-                    class = "mb"
+                        uiOutput(outputId = "ui_g2"),
+                        div(actionButton(inputId = "submit_g2", label = "Guess"), style = "margin: 5px;"),
+                        class = "input-guess"
+                    )
                 )),
                 
                 # Guess 3 ----
                 hidden(div(
                     id = "div-g3",
-                    
                     div(
-                        div(
-                            selectInput(
-                                inputId = "g3", 
-                                label = "Guess 3",
-                                choices = NULL, 
-                                width = "100%"
-                            ),
-                            style = "width: 10%; min-width: 150px; max-width: 300px"
+                        selectInput(
+                            inputId = "g3", 
+                            label = "Guess 3",
+                            choices = NULL, 
+                            width = "150px"
                         ),
-                        class = "rowc"
-                    ),
-                    
-                    uiOutput(outputId = "ui_g3"),
-                    
-                    div(
-                        actionButton(inputId = "submit_g3", label = "Submit hint"),
-                        class = "rowc mb"
-                    ),
-                    
-                    div(
-                        id = "div-t3",
-                        div(
-                            DTOutput(outputId = "t3"),
-                            class = "possibility-table"
-                        ),
-                        class = "rowc mb"
-                    ),
-                    
-                    class = "mb"
+                        uiOutput(outputId = "ui_g3"),
+                        div(actionButton(inputId = "submit_g3", label = "Guess"), style = "margin: 5px;"),
+                        class = "input-guess"
+                    )
                 )),
                 
                 # Guess 4 ----
                 hidden(div(
                     id = "div-g4",
-                    
                     div(
-                        div(
-                            selectInput(
-                                inputId = "g4", 
-                                label = "Guess 4",
-                                choices = NULL, 
-                                width = "100%"
-                            ),
-                            style = "width: 10%; min-width: 150px; max-width: 300px"
+                        selectInput(
+                            inputId = "g4", 
+                            label = "Guess 4",
+                            choices = NULL, 
+                            width = "150px"
                         ),
-                        class = "rowc"
-                    ),
-                    
-                    uiOutput(outputId = "ui_g4"),
-                    
-                    div(
-                        actionButton(inputId = "submit_g4", label = "Submit hint"),
-                        class = "rowc mb"
-                    ),
-                    div(
-                        id = "div-t4",
-                        div(
-                            DTOutput(outputId = "t4"),
-                            class = "possibility-table"
-                        ),
-                        class = "rowc mb"
-                    ),
-                    
-                    class = "mb"
+                        uiOutput(outputId = "ui_g4"),
+                        div(actionButton(inputId = "submit_g4", label = "Guess"), style = "margin: 5px;"),
+                        class = "input-guess"
+                    )
                 )),
                 
                 # Guess 5 ----
                 hidden(div(
                     id = "div-g5",
-                    
                     div(
-                        div(
-                            selectInput(
-                                inputId = "g5", 
-                                label = "Guess 5",
-                                choices = NULL, 
-                                width = "100%"
-                            ),
-                            style = "width: 10%; min-width: 150px; max-width: 300px"
+                        selectInput(
+                            inputId = "g5", 
+                            label = "Guess 5",
+                            choices = NULL, 
+                            width = "150px"
                         ),
-                        class = "rowc"
-                    ),
-                    
-                    uiOutput(outputId = "ui_g5"),
-                    
-                    div(
-                        actionButton(inputId = "submit_g5", label = "Submit hint"),
-                        class = "rowc mb"
-                    ),
-                    div(
-                        id = "div-t5",
-                        div(
-                            DTOutput(outputId = "t5"),
-                            class = "possibility-table"
-                        ),
-                        class = "rowc mb"
-                    ),
-                    
-                    class = "mb"
-                ))
+                        uiOutput(outputId = "ui_g5"),
+                        div(actionButton(inputId = "submit_g5", label = "Guess"), style = "margin: 5px;"),
+                        class = "input-guess"
+                    )
+                )),
                 
-            ), # End guesses
+                # Guess 6 ----
+                hidden(div(
+                    id = "div-g6",
+                    div(
+                        selectInput(
+                            inputId = "g6", 
+                            label = "Guess 6",
+                            choices = NULL, 
+                            width = "150px"
+                        ),
+                        uiOutput(outputId = "ui_g6"),
+                        div(actionButton(inputId = "submit_g6", label = "Guess"), style = "margin: 5px;"),
+                        class = "input-guess"
+                    )
+                )),
+                
+                class = "input-guesses"
+            ),
             
-            # Solution ----
+            
+            # UI: POSSIBILITIES ----
+            div(
+                DTOutput(outputId = "t_possibilities"),
+                class = "possibility-table"
+            ),
+            
+            # UI: SOLUTION ----
             div(
                 id = "div-solution",
                 uiOutput(outputId = "ui_solution")
-            ),
-            
-            # Progress ----
-            div(
-                uiOutput(outputId = "ui_progress"),
-                class = "guess-progress"
             )
             
         )
@@ -252,18 +174,8 @@ server <- function(input, output, session) {
     output$test <- renderPrint({
         req(NULL)
         list(
-            guess_1 = input$g1,
-            status_1 = input$g1_status,
-            hint1 = hint1(),
-            guess_2 = input$g2,
-            status_2 = input$g2_status,
-            hint2 = hint2(),
-            guess_3 = input$g3,
-            status_3 = input$g3_status,
-            hint3 = hint3(),
-            guess_4 = input$g4,
-            status_4 = input$g4_status,
-            hint4 = hint4()
+            current_guess = rv$current_guess,
+            current_possibilities = current_possibilities()
         )
     })
     
@@ -271,11 +183,13 @@ server <- function(input, output, session) {
     # Reactive Values ----
     rv <- reactiveValues(
         submit = NULL,
+        current_guess = 1,
         solution1 = NA,
         solution2 = NA,
         solution3 = NA,
         solution4 = NA,
         solution5 = NA,
+        solution6 = NA,
         tests = list(),
         usage = readRDS(file = file.path("tests", "usage.rds")),
         start_time = Sys.time()
@@ -285,12 +199,6 @@ server <- function(input, output, session) {
     #     runjs()
     # }) %>%
     #     bindEvent(input$g1)
-    
-    
-    # Submit Event ----
-    observeEvent(c(input$submit_g1, input$submit_g2, input$submit_g3, input$submit_g4, input$submit_g5), {
-        rv$submit <- Sys.time()
-    })
     
     
     
@@ -321,7 +229,7 @@ server <- function(input, output, session) {
         
         div(
             letter_boxes,
-            class = "guess mb"
+            class = "guess"
         )
     })
     
@@ -356,29 +264,6 @@ server <- function(input, output, session) {
     })
     
     
-    # Render table of possible second guesses
-    output$t1 <- renderDT({
-        if (is.na(rv$solution1)) {
-            p1() %>%
-                rename(Possibilities = word) %>%
-                datatable(
-                    options = list(
-                        pageLength = nrow(.),
-                        dom = "t",
-                        scrollX = TRUE,
-                        scrollY = min(500, 45 * nrow(.)),
-                        columnDefs = list(
-                            list(className = "dt-center", targets = "_all")
-                        )
-                    ), rownames = FALSE, 
-                    filter = "top", 
-                    style = "bootstrap", 
-                    selection = "single"
-                )
-        }
-    })
-    
-    
     
     # GUESS 2 ----
     
@@ -392,11 +277,6 @@ server <- function(input, output, session) {
         }
     })
     
-    # Update selected guess if a row in the table is clicked
-    observeEvent(input$t1_rows_selected, {
-        selected <- p1()[["word"]][input$t1_rows_selected]
-        updateSelectInput(session = session, inputId = "g2", selected = selected)
-    })
     
     
     # Render letter boxes for second guess
@@ -423,7 +303,7 @@ server <- function(input, output, session) {
         
         div(
             letter_boxes,
-            class = "guess mb"
+            class = "guess"
         )
     })
     
@@ -458,28 +338,6 @@ server <- function(input, output, session) {
     })
     
     
-    # Render possibility table
-    output$t2 <- renderDT({
-        if (is.na(rv$solution2)) {
-            p2() %>%
-                rename(Possibilities = word) %>%
-                datatable(
-                    options = list(
-                        pageLength = nrow(.),
-                        dom = "t",
-                        scrollX = TRUE,
-                        scrollY = min(500, 45 * nrow(.)),
-                        columnDefs = list(
-                            list(className = "dt-center", targets = "_all")
-                        )
-                    ), rownames = FALSE, 
-                    filter = "top", 
-                    style = "bootstrap", 
-                    selection = "single"
-                )
-        }
-    })
-    
     
     # GUESS 3 ------------------------------------------------------------
     
@@ -493,11 +351,6 @@ server <- function(input, output, session) {
         }
     })
     
-    # Update selected guess if a row in the table is clicked
-    observeEvent(input$t2_rows_selected, {
-        selected <- p2()[["word"]][input$t2_rows_selected]
-        updateSelectInput(session = session, inputId = "g3", selected = selected)
-    })
     
     
     # Render letters for guess 3
@@ -527,7 +380,7 @@ server <- function(input, output, session) {
         
         div(
             letter_boxes,
-            class = "guess mb"
+            class = "guess"
         )
         
     })
@@ -561,28 +414,6 @@ server <- function(input, output, session) {
     
     
     
-    output$t3 <- renderDT({
-        if (is.na(rv$solution3)) {
-            p3() %>%
-                rename(Possibilities = word) %>%
-                datatable(
-                    options = list(
-                        pageLength = nrow(.),
-                        dom = "t",
-                        scrollX = TRUE,
-                        scrollY = min(500, 45 * nrow(.)),
-                        columnDefs = list(
-                            list(className = "dt-center", targets = "_all")
-                        )
-                    ), rownames = FALSE, 
-                    filter = "top", 
-                    style = "bootstrap", 
-                    selection = "single"
-                )
-        }
-    })
-    
-    
     # GUESS 4 ------------------------------------------------------------
     
     # Trim options for possible fourth guesses
@@ -595,11 +426,6 @@ server <- function(input, output, session) {
         }
     })
     
-    # Update selected guess if a row in the table is clicked
-    observeEvent(input$t3_rows_selected, {
-        selected <- p3()[["word"]][input$t3_rows_selected]
-        updateSelectInput(session = session, inputId = "g4", selected = selected)
-    })
     
     
     # Render letters for guess 4
@@ -627,7 +453,7 @@ server <- function(input, output, session) {
         
         div(
             letter_boxes,
-            class = "guess mb"
+            class = "guess"
         )
         
     })
@@ -661,31 +487,9 @@ server <- function(input, output, session) {
     
     
     
-    output$t4 <- renderDT({
-        if (is.na(rv$solution4)) {
-            p4() %>%
-                rename(Possibilities = word) %>%
-                datatable(
-                    options = list(
-                        pageLength = nrow(.),
-                        dom = "t",
-                        scrollX = TRUE,
-                        scrollY = min(500, 45 * nrow(.)),
-                        columnDefs = list(
-                            list(className = "dt-center", targets = "_all")
-                        )
-                    ), rownames = FALSE, 
-                    filter = "top", 
-                    style = "bootstrap", 
-                    selection = "single"
-                )
-        }
-    })
-    
-    
     # GUESS 5 ------------------------------------------------------------
     
-    # Trim options for possible fourth guesses
+    # Trim options for possible fifth guesses
     observeEvent(p4(), {
         if (is.na(rv$solution4)) {
             updateSelectInput(session = session, inputId = "g5", choices = p4()[["word"]])
@@ -695,14 +499,8 @@ server <- function(input, output, session) {
         }
     })
     
-    # Update selected guess if a row in the table is clicked
-    observeEvent(input$t4_rows_selected, {
-        selected <- p4()[["word"]][input$t4_rows_selected]
-        updateSelectInput(session = session, inputId = "g5", selected = selected)
-    })
     
-    
-    # Render letters for guess 4
+    # Render letters
     output$ui_g5 <- renderUI({
         
         letter_boxes <- input$g5 %>%
@@ -727,7 +525,7 @@ server <- function(input, output, session) {
         
         div(
             letter_boxes,
-            class = "guess mb"
+            class = "guess"
         )
         
     })
@@ -761,25 +559,148 @@ server <- function(input, output, session) {
     
     
     
-    output$t5 <- renderDT({
+    # GUESS 6 ------------------------------------------------------------
+    
+    # Trim options for possible last guesses
+    observeEvent(p5(), {
         if (is.na(rv$solution5)) {
-            p5() %>%
-                rename(Possibilities = word) %>%
-                datatable(
-                    options = list(
-                        pageLength = nrow(.),
-                        dom = "t",
-                        scrollX = TRUE,
-                        scrollY = min(500, 45 * nrow(.)),
-                        columnDefs = list(
-                            list(className = "dt-center", targets = "_all")
-                        )
-                    ), rownames = FALSE, 
-                    filter = "top", 
-                    style = "bootstrap", 
-                    selection = "single"
-                )
+            updateSelectInput(session = session, inputId = "g6", choices = p5()[["word"]])
+            shinyjs::show(id = "div-g6", anim = TRUE)
+        } else {
+            shinyjs::hide(id = "div-g6", anim = TRUE)
         }
+    })
+    
+    
+    # Render letters
+    output$ui_g6 <- renderUI({
+        
+        letter_boxes <- input$g6 %>%
+            toupper() %>%
+            string_to_vector() %>%
+            imap(function(letter, i) {
+                id <- paste0("g6l", i)
+                
+                runjs(paste0(
+                    id, " = new Letter('", id, "', ", i - 1, "); ", 
+                    "guess_status_6[", i - 1, "] = ", id, ".status; ",
+                    "Shiny.setInputValue('g4_status', guess_status_6); "
+                ))
+                
+                div(
+                    id = id,
+                    letter,
+                    class = "letter s1",
+                    onclick = paste0("update_status(", id, ", guess_status_6, 'g6_status');")
+                )
+            })
+        
+        div(
+            letter_boxes,
+            class = "guess"
+        )
+        
+    })
+    
+    
+    hint6 <- reactive({
+        req(length(input$g6_status) == 5)
+        tibble(
+            position = 1:5,
+            guess = string_to_vector(input$g6),
+            status = input$g6_status
+        )
+    })
+    
+    p6 <- eventReactive(input$submit_g6, {
+        
+        p <- trim_possibilities(
+            hint = hint6(), 
+            possibilities = p5()[["word"]], 
+            status_values = c("s1", "s2", "s3")
+        )
+        
+        if (length(p[["word"]]) == 1) {
+            rv$solution6 <- p[["word"]]
+        } else {
+            rv$solution6 <- NA
+        }
+        
+        return(p)
+    })
+    
+    
+    
+    # Possibilities ----
+
+    # Get current guess    
+    observeEvent(input$submit_g1, {
+        rv$current_guess <- 1
+    })
+    
+    observeEvent(input$submit_g2, {
+        rv$current_guess <- 2
+    })
+    
+    observeEvent(input$submit_g3, {
+        rv$current_guess <- 3
+    })
+    
+    observeEvent(input$submit_g4, {
+        rv$current_guess <- 4
+    })
+    
+    observeEvent(input$submit_g5, {
+        rv$current_guess <- 5
+    })
+    
+    observeEvent(input$submit_g6, {
+        rv$current_guess <- 6
+    })
+    
+    
+    # Show/hide inputs based on current guess
+    observeEvent(rv$current_guess, {
+        max_guesses <- 6
+        1:(rv$current_guess + 1) %>% map(~shinyjs::show(id = paste0("div-g", .x), anim = TRUE))
+        if (rv$current_guess < (max_guesses - 1)) {
+            (rv$current_guess + 2):max_guesses %>% map(~shinyjs::hide(id = paste0("div-g", .x), anim = TRUE))
+            (rv$current_guess + 2):max_guesses %>% map(~updateSelectInput(session = session, inputId = paste0("g", .x), choices = NULL, selected = ""))
+        }
+    }, ignoreInit = TRUE)
+    
+    current_possibilities <- reactive({
+        req(rv$current_guess)
+        eval(parse(text = paste0("p", rv$current_guess, "()")))
+    })
+    
+    output$t_possibilities <- renderDT({
+        validate(need(nrow(current_possibilities()) > 0, "No possibilities found"))
+        current_possibilities() %>%
+            rename(Possibilities = word) %>%
+            datatable(
+                options = list(
+                    pageLength = nrow(.),
+                    dom = "t",
+                    scrollX = TRUE,
+                    scrollY = min(500, 45 * nrow(.)),
+                    columnDefs = list(
+                        list(className = "dt-center", targets = "_all")
+                    )
+                ), rownames = FALSE, 
+                filter = "top", 
+                style = "bootstrap", 
+                selection = "single"
+            )
+    })
+    
+    # update current guess input based on table selection
+    observeEvent(input$t_possibilities_rows_selected, {
+        updateSelectInput(
+            session = session, 
+            inputId = paste0("g", rv$current_guess + 1), 
+            selected = current_possibilities()[["word"]][input$t_possibilities_rows_selected]
+        )
     })
     
     
@@ -791,7 +712,8 @@ server <- function(input, output, session) {
             rv$solution2,
             rv$solution3,
             rv$solution4,
-            rv$solution5
+            rv$solution5,
+            rv$solution6
         ) %>%
             na.omit()
         if (length(solutions) > 0) {
@@ -815,55 +737,16 @@ server <- function(input, output, session) {
     })
     
     
-    # PROGRESS ----
-    
-    # All guesses
-    all_guesses <- eventReactive(rv$submit, {
-        list(
-            g1 = list(
-                letters = string_to_vector(input$g1),
-                status = input$g1_status
-            ),
-            g2 = list(
-                letters = string_to_vector(input$g2),
-                status = input$g2_status
-            ),
-            g3 = list(
-                letters = string_to_vector(input$g3),
-                status = input$g3_status
-            ),
-            g4 = list(
-                letters = string_to_vector(input$g4),
-                status = input$g4_status
-            )
-        )
-    })
-    
-    
-    # output$ui_progress <- renderUI({
-    #     all_guesses() %>%
-    #         map(function(guess) {
-    #             letter_boxes <- map2(guess$letters, guess$status, function(letter, status) {
-    #                 div(
-    #                     toupper(letter),
-    #                     class = paste("letter", status)
-    #                 )
-    #             })
-    #             
-    #             div(letter_boxes, class = "guess")
-    #         })
-    # })
-    
     
     # Help ----
     
     observeEvent(input$help, {
         showModal(modalDialog(
-            title = "Wordle Helper",
+            title = NULL,
             div(
                 div(
                     tags$p(
-                        "This app is a tool to help you solve the game ", 
+                        "This is a tool to help you solve the game ", 
                         tags$a("Wordle", href = "https://www.nytimes.com/games/wordle/index.html", target = "_blank"),
                         ". For more information about Wordle, see the ",
                         tags$a("Wordle FAQ", href = "https://help.nytimes.com/hc/en-us/articles/360029050872-Word-Games-and-Logic-Puzzles#h_01FVGCB2Z00ZQMDMCYWBPWJNXB", target = "_blank"),
@@ -916,6 +799,9 @@ server <- function(input, output, session) {
     })
     
     
+    
+    # Cache Tests ----
+    
     observe({
         
         rv$tests$g1 <- list(
@@ -948,7 +834,6 @@ server <- function(input, output, session) {
         
     })
     
-    # Cache Tests ----
     onSessionEnded(function() {
         isolate({
             saveRDS(object = rv$tests, file = file.path("tests", "values.rds"))
