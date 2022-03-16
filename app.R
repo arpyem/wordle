@@ -184,6 +184,41 @@ ui <- fluidPage(
                     ),
                     
                     class = "mb"
+                )),
+                
+                # Guess 5 ----
+                hidden(div(
+                    id = "div-g5",
+                    
+                    div(
+                        div(
+                            selectInput(
+                                inputId = "g5", 
+                                label = "Guess 5",
+                                choices = NULL, 
+                                width = "100%"
+                            ),
+                            style = "width: 10%; min-width: 150px; max-width: 300px"
+                        ),
+                        class = "rowc"
+                    ),
+                    
+                    uiOutput(outputId = "ui_g5"),
+                    
+                    div(
+                        actionButton(inputId = "submit_g5", label = "Submit hint"),
+                        class = "rowc mb"
+                    ),
+                    div(
+                        id = "div-t5",
+                        div(
+                            DTOutput(outputId = "t5"),
+                            class = "possibility-table"
+                        ),
+                        class = "rowc mb"
+                    ),
+                    
+                    class = "mb"
                 ))
                 
             ), # End guesses
@@ -253,7 +288,7 @@ server <- function(input, output, session) {
     
     
     # Submit Event ----
-    observeEvent(c(input$submit_g1, input$submit_g2, input$submit_g3, input$submit_g4), {
+    observeEvent(c(input$submit_g1, input$submit_g2, input$submit_g3, input$submit_g4, input$submit_g5), {
         rv$submit <- Sys.time()
     })
     
@@ -629,6 +664,106 @@ server <- function(input, output, session) {
     output$t4 <- renderDT({
         if (is.na(rv$solution4)) {
             p4() %>%
+                rename(Possibilities = word) %>%
+                datatable(
+                    options = list(
+                        pageLength = nrow(.),
+                        dom = "t",
+                        scrollX = TRUE,
+                        scrollY = min(500, 45 * nrow(.)),
+                        columnDefs = list(
+                            list(className = "dt-center", targets = "_all")
+                        )
+                    ), rownames = FALSE, 
+                    filter = "top", 
+                    style = "bootstrap", 
+                    selection = "single"
+                )
+        }
+    })
+    
+    
+    # GUESS 5 ------------------------------------------------------------
+    
+    # Trim options for possible fourth guesses
+    observeEvent(p4(), {
+        if (is.na(rv$solution4)) {
+            updateSelectInput(session = session, inputId = "g5", choices = p4()[["word"]])
+            shinyjs::show(id = "div-g5", anim = TRUE)
+        } else {
+            shinyjs::hide(id = "div-g5", anim = TRUE)
+        }
+    })
+    
+    # Update selected guess if a row in the table is clicked
+    observeEvent(input$t4_rows_selected, {
+        selected <- p4()[["word"]][input$t4_rows_selected]
+        updateSelectInput(session = session, inputId = "g5", selected = selected)
+    })
+    
+    
+    # Render letters for guess 4
+    output$ui_g5 <- renderUI({
+        
+        letter_boxes <- input$g5 %>%
+            toupper() %>%
+            string_to_vector() %>%
+            imap(function(letter, i) {
+                id <- paste0("g5l", i)
+                
+                runjs(paste0(
+                    id, " = new Letter('", id, "', ", i - 1, "); ", 
+                    "guess_status_5[", i - 1, "] = ", id, ".status; ",
+                    "Shiny.setInputValue('g4_status', guess_status_5); "
+                ))
+                
+                div(
+                    id = id,
+                    letter,
+                    class = "letter s1",
+                    onclick = paste0("update_status(", id, ", guess_status_5, 'g5_status');")
+                )
+            })
+        
+        div(
+            letter_boxes,
+            class = "guess mb"
+        )
+        
+    })
+    
+    
+    hint5 <- reactive({
+        req(length(input$g5_status) == 5)
+        tibble(
+            position = 1:5,
+            guess = string_to_vector(input$g5),
+            status = input$g5_status
+        )
+    })
+    
+    p5 <- eventReactive(input$submit_g5, {
+        
+        p <- trim_possibilities(
+            hint = hint5(), 
+            possibilities = p4()[["word"]], 
+            status_values = c("s1", "s2", "s3")
+        )
+        
+        if (length(p[["word"]]) == 1) {
+            rv$solution5 <- p[["word"]]
+        } else {
+            rv$solution5 <- NA
+        }
+        
+        return(p)
+    })
+    
+    
+    
+    output$t5 <- renderDT({
+        if (is.na(rv$solution5)) {
+            p5() %>%
                 rename(Possibilities = word) %>%
                 datatable(
                     options = list(
