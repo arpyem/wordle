@@ -3,6 +3,7 @@ let guess_status_2 = [];
 let guess_status_3 = [];
 let guess_status_4 = [];
 let guess_status_5 = [];
+let guess_status_6 = [];
 
 let Letter = class {
     constructor(id = '', position = 0, status = 's1') {
