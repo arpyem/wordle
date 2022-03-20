@@ -128,15 +128,13 @@ trim_possibilities <- function(hint, possibilities, status_values = c("incorrect
         mutate(position = as.integer(position))
     
     # Then trim to words that do not have the incorrect guessed letters in the incorrect location
-    x <- hint %>% filter(status == status_values[1])
+    x <- hint %>% filter(status == status_values[1]) %>% select(-answer)
     
     if (nrow(x) > 0) {
         trimmed_words <- trimmed_words %>%
             anti_join(y, by = c("letter" = "guess")) %>%
-            left_join(x, by = "position") %>%
-            mutate(guess = replace_na(guess, "NA")) %>%
             group_by(word) %>%
-            filter(!any(guess %in% letter)) %>%
+            filter(!any(x$guess %in% letter)) %>%
             ungroup()
     }
     
