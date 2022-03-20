@@ -226,3 +226,24 @@ li {
 
 
 
+
+/* Mobile */
+
+@media (max-width: 500px) {
+    
+    body {
+        font-size: 0.7em;
+    }
+    
+}
+
+@media (max-width: 800px) {
+    
+    body {
+        font-size: 0.85em;
+    }
+    
+}
+
+
+
