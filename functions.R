@@ -128,7 +128,7 @@ trim_possibilities <- function(hint, possibilities, status_values = c("incorrect
         mutate(position = as.integer(position))
     
     # Then trim to words that do not have the incorrect guessed letters in the incorrect location
-    x <- hint %>% filter(status == status_values[1]) %>% select(-answer)
+    x <- hint %>% filter(status == status_values[1])
     
     if (nrow(x) > 0) {
         trimmed_words <- trimmed_words %>%
